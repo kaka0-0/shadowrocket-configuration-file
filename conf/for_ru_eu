@@ -1,1 +1,14 @@
+[General]
+dns-server = https://1.1.1.1/dns-query,https://8.8.8.8/dns-query
+ipv6 = false
 
+[Rule]
+# Локальная сеть мимо VPN
+IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
+IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
+IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
+IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
+IP-CIDR,169.254.0.0/16,DIRECT,no-resolve
+
+# Всё остальное — на RU VLESS
+FINAL,PROXY
