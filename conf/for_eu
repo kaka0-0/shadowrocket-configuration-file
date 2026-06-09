@@ -1,23 +1,20 @@
-# Shadowrocket: 2026-06-08 16:14:51
+# Shadowrocket: 2026-06-09 10:01:51
 [General]
 dns-server = https://1.1.1.1/dns-query,https://8.8.8.8/dns-query
 ipv6 = false
-
+update-url = https://raw.githubusercontent.com/kaka0-0/shadowrocket-configuration-file/refs/heads/main/conf/for_eu
 [Rule]
 # 1. block: category-ads (+ win-spy — точного аналога нет, опущено)
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Advertising/Advertising.list,REJECT
-
 # 2. PROXY-исключения (ДО блока RU-direct, иначе уйдёт в DIRECT по GEOIP)
 DOMAIN-SUFFIX,habr.com,PROXY
 DOMAIN-SUFFIX,apkmirror.com,PROXY
-
 # 3. direct: IP-leak чекеры (geosite:category-ip-geo-detect)
 DOMAIN-SUFFIX,ifconfig.me,DIRECT
 DOMAIN,checkip.amazonaws.com,DIRECT
 DOMAIN-SUFFIX,ip-api.com,DIRECT
 DOMAIN-SUFFIX,ipinfo.io,DIRECT
 DOMAIN-SUFFIX,ipify.org,DIRECT
-
 # 4. direct: крупные сервисы (эквиваленты geosite)
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Apple/Apple.list,DIRECT
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Microsoft/Microsoft.list,DIRECT
@@ -25,8 +22,11 @@ RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/r
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/GooglePlay/GooglePlay.list,DIRECT
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Xiaomi/Xiaomi.list,DIRECT
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Huawei/Huawei.list,DIRECT
-
-# 5. direct: RU-домены (geosite:yandex / vk)
+# 5. direct: своя инфра (HA/mida6, домашние сервисы) — DIRECT, мимо туннеля.
+#    [ПРАВКА] иначе netcraze.pro заворачивается в VLESS → TLS-in-TLS → обрывы "через раз"
+DOMAIN-SUFFIX,netcraze.pro,DIRECT
+DOMAIN-SUFFIX,y8s33fl.space,DIRECT
+# 6. direct: RU-домены (geosite:yandex / vk)
 DOMAIN-SUFFIX,yandex.ru,DIRECT
 DOMAIN-SUFFIX,yandex.net,DIRECT
 DOMAIN-SUFFIX,yandex.com,DIRECT
@@ -37,16 +37,12 @@ DOMAIN-SUFFIX,vk-cdn.net,DIRECT
 DOMAIN-SUFFIX,userapi.com,DIRECT
 DOMAIN-SUFFIX,mycdn.me,DIRECT
 DOMAIN-SUFFIX,mail.ru,DIRECT
-
-# 6. direct: private (geosite:private + geoip:private) — ПЕРЕД GEOIP, без лукапа
+# 7. direct: private (geosite:private + geoip:private) — ПЕРЕД GEOIP, без лукапа
 IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
 IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
 IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
 IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
-
-# 7. direct: всё российское по IP (заменяет geosite:category-ru)
+# 8. direct: всё российское по IP (заменяет geosite:category-ru)
 GEOIP,RU,DIRECT
-
-# 8. дефолт = PROXY (первый outbound в Xray)
+# 9. дефолт = PROXY (первый outbound в Xray)
 FINAL,PROXY
-
