@@ -27,6 +27,8 @@ RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/r
 DOMAIN-SUFFIX,netcraze.pro,DIRECT
 DOMAIN-SUFFIX,y8s33fl.space,DIRECT
 # 6. direct: RU-домены (geosite:yandex / vk)
+DOMAIN-SUFFIX,confluence.bcs.ru,DIRECT
+DOMAIN-SUFFIX,bcs.ru,DIRECT
 DOMAIN-SUFFIX,yandex.ru,DIRECT
 DOMAIN-SUFFIX,yandex.net,DIRECT
 DOMAIN-SUFFIX,yandex.com,DIRECT
