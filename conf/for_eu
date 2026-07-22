@@ -2,7 +2,7 @@
 [General]
 dns-server = 5.35.114.178,https://8.8.8.8/dns-query
 ipv6 = false
-geoip-country = https://cdn.jsdelivr.net/gh/hydraponique/roscomvpn-geoip/release/geoip.dat
+geoip-country = https://git.io/GeoLite2-Country.mmdb
 update-url = https://raw.githubusercontent.com/kaka0-0/shadowrocket-configuration-file/refs/heads/main/conf/for_eu
 
 [Rule]
@@ -13,7 +13,7 @@ RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/r
 DOMAIN-SUFFIX,habr.com,PROXY
 DOMAIN-SUFFIX,apkmirror.com,PROXY
 
-# 3. direct: IP-leak чекеры (geosite:category-ip-geo-detect)
+# 3. direct: IP-leak чекеры
 DOMAIN-SUFFIX,ifconfig.me,DIRECT
 DOMAIN,checkip.amazonaws.com,DIRECT
 DOMAIN-SUFFIX,ip-api.com,DIRECT
@@ -32,7 +32,7 @@ RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/r
 DOMAIN-SUFFIX,netcraze.pro,DIRECT
 DOMAIN-SUFFIX,y8s33fl.space,DIRECT
 
-# 6. direct: RU-домены
+# 6. direct: RU-домены (явные записи + домен .ru как страховка)
 DOMAIN-SUFFIX,confluence.bcs.ru,DIRECT
 DOMAIN-SUFFIX,bcs.ru,DIRECT
 DOMAIN-SUFFIX,yandex.ru,DIRECT
@@ -45,18 +45,17 @@ DOMAIN-SUFFIX,vk-cdn.net,DIRECT
 DOMAIN-SUFFIX,userapi.com,DIRECT
 DOMAIN-SUFFIX,mycdn.me,DIRECT
 DOMAIN-SUFFIX,mail.ru,DIRECT
+# Страховка: все .ru домены — DIRECT (до GEOIP, покрывает ozon.ru и всё остальное)
+DOMAIN-SUFFIX,ru,DIRECT
 
-# 7. direct: private — без DNS-резолва
+# 7. direct: private
 IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
 IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
 IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
 IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
 
-# 8. direct: roscomvpn-geoip (whitelist — Apple Push и др. — ДО direct, иначе перекроется)
-# geoip.dat: https://cdn.jsdelivr.net/gh/hydraponique/roscomvpn-geoip/release/geoip.dat
-# Категории: direct (~15k CIDR РФ/РБ), whitelist (~4k CIDR белого списка)
-GEOIP,whitelist,DIRECT
-GEOIP,direct,DIRECT
+# 8. direct: всё российское по IP (ISO-код, работает с MaxMind MMDB)
+GEOIP,RU,DIRECT
 
 # 9. дефолт = PROXY
 FINAL,PROXY
