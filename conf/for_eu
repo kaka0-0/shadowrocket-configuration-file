@@ -1,14 +1,9 @@
-# Shadowrocket: 2026-07-22 09:48:31
+# Shadowrocket: 2026-07-24 14:54:05
 [General]
 dns-server = 5.35.114.178, https://8.8.8.8/dns-query
 ipv6 = false
 geoip-country = https://git.io/GeoLite2-Country.mmdb
 update-url = https://raw.githubusercontent.com/kaka0-0/shadowrocket-configuration-file/refs/heads/main/conf/for_eu
-
-[Host]
-# ФНС — статический DNS (DnsHosts из JSON)
-lkfl2.nalog.ru = 213.24.64.175
-lknpd.nalog.ru = 213.24.64.181
 
 [Rule]
 # ============================================================
@@ -21,6 +16,11 @@ RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/r
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Privacy/Privacy.list,REJECT
 # geosite:torrent
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/BitTorrent/BitTorrent.list,REJECT
+
+# QUIC-блок (аналог "network udp, port 443" в 05_routing.json)
+# Без этого YouTube/Chrome могут уйти по UDP/443 в обход PROXY-правил ниже
+# и попасть под замедление РКН напрямую, даже с настроенным YouTube-правилом.
+AND,((PROTOCOL,QUIC)),REJECT
 
 # ============================================================
 # PROXY (обязательно ДО GEOIP,RU — иначе YouTube/GitHub уйдут в DIRECT)
@@ -65,7 +65,11 @@ RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/r
 # geosite:epicgames
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Epic/Epic.list,DIRECT
 
-# geosite:riot (нет готового RULE-SET — ручные домены)
+# geosite:origin
+DOMAIN-SUFFIX,origin.com,DIRECT
+DOMAIN-SUFFIX,ea.com,DIRECT
+
+# geosite:riot
 DOMAIN-SUFFIX,riotgames.com,DIRECT
 DOMAIN-SUFFIX,riotstatic.com,DIRECT
 DOMAIN-SUFFIX,leagueoflegends.com,DIRECT
@@ -73,17 +77,17 @@ DOMAIN-SUFFIX,valorant.com,DIRECT
 DOMAIN-SUFFIX,playvalorant.com,DIRECT
 DOMAIN-SUFFIX,pvp.net,DIRECT
 
-# geosite:twitch (JSON: DirectSites; twitch-ads как отдельный PROXY — нет .list)
+# geosite:twitch 
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Twitch/Twitch.list,DIRECT
 
 # geosite:pinterest
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Pinterest/Pinterest.list,DIRECT
 
-# geosite:faceit (нет готового RULE-SET — ручные домены)
+# geosite:faceit
 DOMAIN-SUFFIX,faceit.com,DIRECT
 DOMAIN-SUFFIX,faceit-cdn.net,DIRECT
 
-# geosite:escapefromtarkov (нет готового RULE-SET — ручные домены)
+# geosite:escapefromtarkov
 DOMAIN-SUFFIX,escapefromtarkov.com,DIRECT
 DOMAIN-SUFFIX,battlestate.com,DIRECT
 
@@ -91,9 +95,20 @@ DOMAIN-SUFFIX,battlestate.com,DIRECT
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Xiaomi/Xiaomi.list,DIRECT
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Huawei/Huawei.list,DIRECT
 
+# PlayStation / PSN 
+DOMAIN-SUFFIX,playstation.com,DIRECT
+DOMAIN-SUFFIX,playstation.net,DIRECT
+DOMAIN-SUFFIX,psn.com,DIRECT
+DOMAIN-SUFFIX,sonyentertainmentnetwork.com,DIRECT
+DOMAIN-SUFFIX,sony.com,DIRECT
+
 # Своя инфра (HA / mida6)
 DOMAIN-SUFFIX,netcraze.pro,DIRECT
 DOMAIN-SUFFIX,y8s33fl.space,DIRECT
+
+# lampa.mx / duckdns.org 
+DOMAIN-SUFFIX,lampa.mx,DIRECT
+DOMAIN-SUFFIX,duckdns.org,DIRECT
 
 # geosite:category-ru + geosite:whitelist (явные домены + страховка .ru)
 DOMAIN-SUFFIX,confluence.bcs.ru,DIRECT
@@ -121,3 +136,8 @@ GEOIP,RU,DIRECT
 
 # ============================================================
 FINAL,PROXY
+
+[Host]
+# ФНС — статический DNS (DnsHosts из JSON)
+lkfl2.nalog.ru = 213.24.64.175
+lknpd.nalog.ru = 213.24.64.181
