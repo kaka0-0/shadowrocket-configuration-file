@@ -1,143 +1,133 @@
-# Shadowrocket: 2026-07-24 14:54:05
+# Shadowrocket: 2026-10-27 (v3)
 [General]
-dns-server = 5.35.114.178, https://8.8.8.8/dns-query
+# DNS: сначала свой AdGuard (DoH), при отказе/таймауте (>2 с) — Quad9 DoH
+dns-server = https://dns.y8s33fl.space/dns-query
+fallback-dns-server = https://9.9.9.9/dns-query
+hijack-dns = 8.8.8.8:53, 8.8.4.4:53, 1.1.1.1:53, 1.0.0.1:53, 9.9.9.9:53
+private-ip-answer = true
 ipv6 = false
-geoip-country = https://git.io/GeoLite2-Country.mmdb
+# QUIC режется только для проксируемого трафика, RU-сервисы напрямую сохраняют HTTP/3.
+# Если YouTube начнёт тупить — поставь all
+block-quic = all-proxy
+udp-policy-not-supported-behaviour = REJECT
+geoip-country = https://github.com/Loyalsoldier/geoip/releases/latest/download/Country.mmdb
+tun-excluded-routes = 10.0.0.0/8, 100.64.0.0/10, 127.0.0.0/8, 169.254.0.0/16, 172.16.0.0/12, 192.0.0.0/24, 192.168.0.0/16, 224.0.0.0/4, 255.255.255.255/32
+skip-proxy = 192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12, localhost, *.local, captive.apple.com
 update-url = https://raw.githubusercontent.com/kaka0-0/shadowrocket-configuration-file/refs/heads/main/conf/for_eu
+
+[Proxy Group]
+# Аналог balancer leastPing на Keenetic. Если в списке есть узлы с RU-выходом — сузь regex, напр. (?i)(se|fi|nl|ge)
+AUTO = url-test,policy-regex-filter=.*,interval=600,timeout=5,tolerance=50,url=http://www.gstatic.com/generate_204
+# AI и аккаунты: первый живой узел по порядку списка → стабильный выходной IP
+AI = fallback,policy-regex-filter=.*,interval=600,timeout=5,url=http://www.gstatic.com/generate_204
 
 [Rule]
 # ============================================================
-# BLOCK (RouteOrder: block → proxy → direct)
+# PROXY — до DIRECT: в Microsoft.list есть bing.com и DOMAIN-KEYWORD,microsoft,
+# иначе Copilot/Bing уходят в DIRECT (из РФ не работают)
 # ============================================================
 
-# geosite:category-ads
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Advertising/Advertising.list,REJECT
-# geosite:win-spy (телеметрия Windows)
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Privacy/Privacy.list,REJECT
-# geosite:torrent
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/BitTorrent/BitTorrent.list,REJECT
+DOMAIN-SUFFIX,habr.com,AUTO
+DOMAIN-SUFFIX,apkmirror.com,AUTO
 
-# QUIC-блок (аналог "network udp, port 443" в 05_routing.json)
-# Без этого YouTube/Chrome могут уйти по UDP/443 в обход PROXY-правил ниже
-# и попасть под замедление РКН напрямую, даже с настроенным YouTube-правилом.
-AND,((PROTOCOL,QUIC)),REJECT
+# AI
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/OpenAI/OpenAI.list,AI
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Claude/Claude.list,AI
+DOMAIN-SUFFIX,claude.com,AI
+DOMAIN-SUFFIX,claudeusercontent.com,AI
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Gemini/Gemini.list,AI
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Copilot/Copilot.list,AI
+
+# geosite:youtube / github / telegram
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/YouTube/YouTube.list,AUTO
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/GitHub/GitHub.list,AUTO
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Telegram/Telegram.list,AUTO
 
 # ============================================================
-# PROXY (обязательно ДО GEOIP,RU — иначе YouTube/GitHub уйдут в DIRECT)
+# BLOCK через AdGuard: домен, на который AdGuard ответил 0.0.0.0 → REJECT.
+# Без этого блок AdGuard не действует на трафик в FINAL: сервер резолвит домен сам.
+# Стоит после PROXY-списков (не резолвим локально YouTube/Telegram/AI);
+# дальше резолв нужен всё равно (DIRECT/GEOIP), так что правило бесплатное.
+# Требует в AdGuard: blocking_mode = null_ip
 # ============================================================
-
-# Явные исключения
-DOMAIN-SUFFIX,habr.com,PROXY
-DOMAIN-SUFFIX,apkmirror.com,PROXY
-
-# geosite:google-play (JSON: ProxySites — в РФ лучше через прокси)
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/GooglePlay/GooglePlay.list,PROXY
-
-# geosite:youtube (JSON: ProxySites — РКН замедляет)
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/YouTube/YouTube.list,PROXY
-
-# geosite:github (JSON: ProxySites — периодически замедляется)
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/GitHub/GitHub.list,PROXY
-
-# geosite:telegram (JSON: ProxySites)
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Telegram/Telegram.list,PROXY
+IP-CIDR,0.0.0.0/32,REJECT
 
 # ============================================================
 # DIRECT
 # ============================================================
 
-# IP-leak чекеры (geosite:category-ip-geo-detect)
+# IP-geo чекеры (geosite:category-ip-geo-detect)
 DOMAIN-SUFFIX,ifconfig.me,DIRECT
 DOMAIN,checkip.amazonaws.com,DIRECT
 DOMAIN-SUFFIX,ip-api.com,DIRECT
 DOMAIN-SUFFIX,ipinfo.io,DIRECT
 DOMAIN-SUFFIX,ipify.org,DIRECT
 
-# geosite:apple
+# geosite:apple / microsoft
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Apple/Apple.list,DIRECT
-
-# geosite:microsoft
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Microsoft/Microsoft.list,DIRECT
 
-# geosite:steam
+# Игры / медиа
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Steam/Steam.list,DIRECT
-
-# geosite:epicgames
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Epic/Epic.list,DIRECT
-
-# geosite:origin
 DOMAIN-SUFFIX,origin.com,DIRECT
 DOMAIN-SUFFIX,ea.com,DIRECT
-
-# geosite:riot
 DOMAIN-SUFFIX,riotgames.com,DIRECT
 DOMAIN-SUFFIX,riotstatic.com,DIRECT
 DOMAIN-SUFFIX,leagueoflegends.com,DIRECT
 DOMAIN-SUFFIX,valorant.com,DIRECT
 DOMAIN-SUFFIX,playvalorant.com,DIRECT
 DOMAIN-SUFFIX,pvp.net,DIRECT
-
-# geosite:twitch 
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Twitch/Twitch.list,DIRECT
-
-# geosite:pinterest
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Pinterest/Pinterest.list,DIRECT
-
-# geosite:faceit
 DOMAIN-SUFFIX,faceit.com,DIRECT
 DOMAIN-SUFFIX,faceit-cdn.net,DIRECT
-
-# geosite:escapefromtarkov
 DOMAIN-SUFFIX,escapefromtarkov.com,DIRECT
 DOMAIN-SUFFIX,battlestate.com,DIRECT
-
-# Xiaomi / Huawei
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Xiaomi/Xiaomi.list,DIRECT
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Huawei/Huawei.list,DIRECT
-
-# PlayStation / PSN 
 DOMAIN-SUFFIX,playstation.com,DIRECT
 DOMAIN-SUFFIX,playstation.net,DIRECT
 DOMAIN-SUFFIX,psn.com,DIRECT
 DOMAIN-SUFFIX,sonyentertainmentnetwork.com,DIRECT
 DOMAIN-SUFFIX,sony.com,DIRECT
 
-# Своя инфра (HA / mida6)
+# Умный дом / вендоры (как на Keenetic). Путь XiaoMi — Xiaomi/Xiaomi.list отдаёт 404
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/XiaoMi/XiaoMi.list,DIRECT
+DOMAIN-SUFFIX,aqara.com,DIRECT
+DOMAIN-SUFFIX,yeelight.com,DIRECT
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Huawei/Huawei.list,DIRECT
+
+# Своя инфра (HA / mida6 / AdGuard)
 DOMAIN-SUFFIX,netcraze.pro,DIRECT
 DOMAIN-SUFFIX,y8s33fl.space,DIRECT
-
-# lampa.mx / duckdns.org 
 DOMAIN-SUFFIX,lampa.mx,DIRECT
 DOMAIN-SUFFIX,duckdns.org,DIRECT
+IP-CIDR,5.35.114.178/32,DIRECT,no-resolve
 
-# geosite:category-ru + geosite:whitelist (явные домены + страховка .ru)
-DOMAIN-SUFFIX,confluence.bcs.ru,DIRECT
-DOMAIN-SUFFIX,bcs.ru,DIRECT
-DOMAIN-SUFFIX,yandex.ru,DIRECT
-DOMAIN-SUFFIX,yandex.net,DIRECT
-DOMAIN-SUFFIX,yandex.com,DIRECT
-DOMAIN-SUFFIX,ya.ru,DIRECT
-DOMAIN-SUFFIX,vk.com,DIRECT
-DOMAIN-SUFFIX,vk.ru,DIRECT
-DOMAIN-SUFFIX,vk-cdn.net,DIRECT
-DOMAIN-SUFFIX,userapi.com,DIRECT
+# geosite:category-ru + whitelist
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Yandex/Yandex.list,DIRECT
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/VK/VK.list,DIRECT
 DOMAIN-SUFFIX,mycdn.me,DIRECT
-DOMAIN-SUFFIX,mail.ru,DIRECT
 DOMAIN-SUFFIX,ru,DIRECT
+DOMAIN-SUFFIX,su,DIRECT
+DOMAIN-SUFFIX,xn--p1ai,DIRECT
 
-# geoip:private
+# geoip:private (страховка к tun-excluded-routes)
 IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
+IP-CIDR,100.64.0.0/10,DIRECT,no-resolve
 IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
 IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
 IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
+IP-CIDR,169.254.0.0/16,DIRECT,no-resolve
 
-# geoip:direct (все RU IP)
+# geoip:direct
 GEOIP,RU,DIRECT
 
 # ============================================================
-FINAL,PROXY
+FINAL,AUTO
 
 [Host]
-# ФНС — статический DNS (DnsHosts из JSON)
+# Bootstrap: имя DoH-сервера не резолвится через него самого
+dns.y8s33fl.space = 5.35.114.178
+# ФНС — статический DNS (при недоступности ЛК проверить актуальность IP)
 lkfl2.nalog.ru = 213.24.64.175
 lknpd.nalog.ru = 213.24.64.181
