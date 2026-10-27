@@ -27,6 +27,20 @@ AI = fallback,policy-regex-filter=.*,interval=600,timeout=5,url=http://www.gstat
 # иначе Copilot/Bing уходят в DIRECT (из РФ не работают)
 # ============================================================
 
+# Telegram: официальные подсети (core.telegram.org/resources/cidr.txt) — явно, в начале.
+# В Telegram.list нет 91.105.192.0/23 и 185.76.151.0/24 (только через IP-ASN, который Shadowrocket
+# может не поддерживать) — такие адреса проваливались до GEOIP/FINAL.
+IP-CIDR,91.108.4.0/22,AUTO,no-resolve
+IP-CIDR,91.108.8.0/22,AUTO,no-resolve
+IP-CIDR,91.108.12.0/22,AUTO,no-resolve
+IP-CIDR,91.108.16.0/22,AUTO,no-resolve
+IP-CIDR,91.108.20.0/22,AUTO,no-resolve
+IP-CIDR,91.108.56.0/22,AUTO,no-resolve
+IP-CIDR,91.105.192.0/23,AUTO,no-resolve
+IP-CIDR,149.154.160.0/20,AUTO,no-resolve
+IP-CIDR,185.76.151.0/24,AUTO,no-resolve
+IP-CIDR,95.161.64.0/20,AUTO,no-resolve
+
 DOMAIN-SUFFIX,habr.com,AUTO
 DOMAIN-SUFFIX,apkmirror.com,AUTO
 
