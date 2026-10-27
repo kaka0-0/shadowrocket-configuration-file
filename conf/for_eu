@@ -1,141 +1,51 @@
-# Shadowrocket: 2026-10-27 (v3)
+# Shadowrocket: 2026-10-28 00:53:43
 [General]
-# DNS: сначала свой AdGuard (DoH), при отказе/таймауте (>2 с) — Quad9 DoH
-dns-server = 8.8.8.8
-fallback-dns-server = https://9.9.9.9/dns-query
-hijack-dns = 8.8.8.8:53, 8.8.4.4:53, 1.1.1.1:53, 1.0.0.1:53, 9.9.9.9:53
-private-ip-answer = true
+dns-server = https://1.1.1.1/dns-query,https://8.8.8.8/dns-query
 ipv6 = false
-# QUIC режется только для проксируемого трафика, RU-сервисы напрямую сохраняют HTTP/3.
-# Если YouTube начнёт тупить — поставь all
-block-quic = all-proxy
-udp-policy-not-supported-behaviour = REJECT
-geoip-country = https://github.com/Loyalsoldier/geoip/releases/latest/download/Country.mmdb
-tun-excluded-routes = 10.0.0.0/8, 100.64.0.0/10, 127.0.0.0/8, 169.254.0.0/16, 172.16.0.0/12, 192.0.0.0/24, 192.168.0.0/16, 224.0.0.0/4, 255.255.255.255/32
-skip-proxy = 192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12, localhost, *.local, captive.apple.com
-update-url = https://raw.githubusercontent.com/kaka0-0/shadowrocket-configuration-file/refs/heads/main/conf/for_eu
 
 [Rule]
-# ============================================================
-# PROXY — до DIRECT: в Microsoft.list есть bing.com и DOMAIN-KEYWORD,microsoft,
-# иначе Copilot/Bing уходят в DIRECT (из РФ не работают)
-# ============================================================
+# 1. block: category-ads (+ win-spy — точного аналога нет, опущено)
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Advertising/Advertising.list,REJECT
 
-# Telegram: официальные подсети (core.telegram.org/resources/cidr.txt) — явно, в начале.
-# В Telegram.list нет 91.105.192.0/23 и 185.76.151.0/24 (только через IP-ASN, который Shadowrocket
-# может не поддерживать) — такие адреса проваливались до GEOIP/FINAL.
-IP-CIDR,91.108.4.0/22,PROXY,no-resolve
-IP-CIDR,91.108.8.0/22,PROXY,no-resolve
-IP-CIDR,91.108.12.0/22,PROXY,no-resolve
-IP-CIDR,91.108.16.0/22,PROXY,no-resolve
-IP-CIDR,91.108.20.0/22,PROXY,no-resolve
-IP-CIDR,91.108.56.0/22,PROXY,no-resolve
-IP-CIDR,91.105.192.0/23,PROXY,no-resolve
-IP-CIDR,149.154.160.0/20,PROXY,no-resolve
-IP-CIDR,185.76.151.0/24,PROXY,no-resolve
-IP-CIDR,95.161.64.0/20,PROXY,no-resolve
-
+# 2. PROXY-исключения (ДО блока RU-direct, иначе уйдёт в DIRECT по GEOIP)
 DOMAIN-SUFFIX,habr.com,PROXY
 DOMAIN-SUFFIX,apkmirror.com,PROXY
 
-# AI
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/OpenAI/OpenAI.list,PROXY
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Claude/Claude.list,PROXY
-DOMAIN-SUFFIX,claude.com,PROXY
-DOMAIN-SUFFIX,claudeusercontent.com,PROXY
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Gemini/Gemini.list,PROXY
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Copilot/Copilot.list,PROXY
-
-# geosite:youtube / github / telegram
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/YouTube/YouTube.list,PROXY
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/GitHub/GitHub.list,PROXY
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Telegram/Telegram.list,PROXY
-
-# ============================================================
-# BLOCK через AdGuard: домен, на который AdGuard ответил 0.0.0.0 → REJECT.
-# Без этого блок AdGuard не действует на трафик в FINAL: сервер резолвит домен сам.
-# Стоит после PROXY-списков (не резолвим локально YouTube/Telegram/AI);
-# дальше резолв нужен всё равно (DIRECT/GEOIP), так что правило бесплатное.
-# Требует в AdGuard: blocking_mode = null_ip
-# ============================================================
-IP-CIDR,0.0.0.0/32,REJECT
-
-# ============================================================
-# DIRECT
-# ============================================================
-
-# IP-geo чекеры (geosite:category-ip-geo-detect)
+# 3. direct: IP-leak чекеры (geosite:category-ip-geo-detect)
 DOMAIN-SUFFIX,ifconfig.me,DIRECT
 DOMAIN,checkip.amazonaws.com,DIRECT
 DOMAIN-SUFFIX,ip-api.com,DIRECT
 DOMAIN-SUFFIX,ipinfo.io,DIRECT
 DOMAIN-SUFFIX,ipify.org,DIRECT
 
-# geosite:apple / microsoft
+# 4. direct: крупные сервисы (эквиваленты geosite)
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Apple/Apple.list,DIRECT
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Microsoft/Microsoft.list,DIRECT
-
-# Игры / медиа
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Steam/Steam.list,DIRECT
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Epic/Epic.list,DIRECT
-DOMAIN-SUFFIX,origin.com,DIRECT
-DOMAIN-SUFFIX,ea.com,DIRECT
-DOMAIN-SUFFIX,riotgames.com,DIRECT
-DOMAIN-SUFFIX,riotstatic.com,DIRECT
-DOMAIN-SUFFIX,leagueoflegends.com,DIRECT
-DOMAIN-SUFFIX,valorant.com,DIRECT
-DOMAIN-SUFFIX,playvalorant.com,DIRECT
-DOMAIN-SUFFIX,pvp.net,DIRECT
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Twitch/Twitch.list,DIRECT
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Pinterest/Pinterest.list,DIRECT
-DOMAIN-SUFFIX,faceit.com,DIRECT
-DOMAIN-SUFFIX,faceit-cdn.net,DIRECT
-DOMAIN-SUFFIX,escapefromtarkov.com,DIRECT
-DOMAIN-SUFFIX,battlestate.com,DIRECT
-DOMAIN-SUFFIX,playstation.com,DIRECT
-DOMAIN-SUFFIX,playstation.net,DIRECT
-DOMAIN-SUFFIX,psn.com,DIRECT
-DOMAIN-SUFFIX,sonyentertainmentnetwork.com,DIRECT
-DOMAIN-SUFFIX,sony.com,DIRECT
-
-# Умный дом / вендоры (как на Keenetic). Путь XiaoMi — Xiaomi/Xiaomi.list отдаёт 404
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/XiaoMi/XiaoMi.list,DIRECT
-DOMAIN-SUFFIX,aqara.com,DIRECT
-DOMAIN-SUFFIX,yeelight.com,DIRECT
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/GooglePlay/GooglePlay.list,DIRECT
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Xiaomi/Xiaomi.list,DIRECT
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Huawei/Huawei.list,DIRECT
 
-# Своя инфра (HA / mida6 / AdGuard)
-DOMAIN-SUFFIX,netcraze.pro,DIRECT
-DOMAIN-SUFFIX,y8s33fl.space,DIRECT
-DOMAIN-SUFFIX,lampa.mx,DIRECT
-DOMAIN-SUFFIX,duckdns.org,DIRECT
-IP-CIDR,5.35.114.178/32,DIRECT,no-resolve
-
-# geosite:category-ru + whitelist
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Yandex/Yandex.list,DIRECT
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/VK/VK.list,DIRECT
+# 5. direct: RU-домены (geosite:yandex / vk)
+DOMAIN-SUFFIX,yandex.ru,DIRECT
+DOMAIN-SUFFIX,yandex.net,DIRECT
+DOMAIN-SUFFIX,yandex.com,DIRECT
+DOMAIN-SUFFIX,ya.ru,DIRECT
+DOMAIN-SUFFIX,vk.com,DIRECT
+DOMAIN-SUFFIX,vk.ru,DIRECT
+DOMAIN-SUFFIX,vk-cdn.net,DIRECT
+DOMAIN-SUFFIX,userapi.com,DIRECT
 DOMAIN-SUFFIX,mycdn.me,DIRECT
-DOMAIN-SUFFIX,ru,DIRECT
-DOMAIN-SUFFIX,su,DIRECT
-DOMAIN-SUFFIX,xn--p1ai,DIRECT
+DOMAIN-SUFFIX,mail.ru,DIRECT
 
-# geoip:private (страховка к tun-excluded-routes)
+# 6. direct: private (geosite:private + geoip:private) — ПЕРЕД GEOIP, без лукапа
 IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
-IP-CIDR,100.64.0.0/10,DIRECT,no-resolve
 IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
 IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
 IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
-IP-CIDR,169.254.0.0/16,DIRECT,no-resolve
 
-# geoip:direct
+# 7. direct: всё российское по IP (заменяет geosite:category-ru)
 GEOIP,RU,DIRECT
 
-# ============================================================
+# 8. дефолт = PROXY (первый outbound в Xray)
 FINAL,PROXY
-
-[Host]
-# Bootstrap: имя DoH-сервера не резолвится через него самого
-dns.y8s33fl.space = 5.35.114.178
-# ФНС — статический DNS (при недоступности ЛК проверить актуальность IP)
-lkfl2.nalog.ru = 213.24.64.175
-lknpd.nalog.ru = 213.24.64.181
