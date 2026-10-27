@@ -15,12 +15,6 @@ tun-excluded-routes = 10.0.0.0/8, 100.64.0.0/10, 127.0.0.0/8, 169.254.0.0/16, 17
 skip-proxy = 192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12, localhost, *.local, captive.apple.com
 update-url = https://raw.githubusercontent.com/kaka0-0/shadowrocket-configuration-file/refs/heads/main/conf/for_eu
 
-[Proxy Group]
-# Аналог balancer leastPing на Keenetic. Если в списке есть узлы с RU-выходом — сузь regex, напр. (?i)(se|fi|nl|ge)
-AUTO = url-test,policy-regex-filter=.*,interval=600,timeout=5,tolerance=50,url=http://www.gstatic.com/generate_204
-# AI и аккаунты: первый живой узел по порядку списка → стабильный выходной IP
-AI = fallback,policy-regex-filter=.*,interval=600,timeout=5,url=http://www.gstatic.com/generate_204
-
 [Rule]
 # ============================================================
 # PROXY — до DIRECT: в Microsoft.list есть bing.com и DOMAIN-KEYWORD,microsoft,
@@ -30,32 +24,32 @@ AI = fallback,policy-regex-filter=.*,interval=600,timeout=5,url=http://www.gstat
 # Telegram: официальные подсети (core.telegram.org/resources/cidr.txt) — явно, в начале.
 # В Telegram.list нет 91.105.192.0/23 и 185.76.151.0/24 (только через IP-ASN, который Shadowrocket
 # может не поддерживать) — такие адреса проваливались до GEOIP/FINAL.
-IP-CIDR,91.108.4.0/22,AUTO,no-resolve
-IP-CIDR,91.108.8.0/22,AUTO,no-resolve
-IP-CIDR,91.108.12.0/22,AUTO,no-resolve
-IP-CIDR,91.108.16.0/22,AUTO,no-resolve
-IP-CIDR,91.108.20.0/22,AUTO,no-resolve
-IP-CIDR,91.108.56.0/22,AUTO,no-resolve
-IP-CIDR,91.105.192.0/23,AUTO,no-resolve
-IP-CIDR,149.154.160.0/20,AUTO,no-resolve
-IP-CIDR,185.76.151.0/24,AUTO,no-resolve
-IP-CIDR,95.161.64.0/20,AUTO,no-resolve
+IP-CIDR,91.108.4.0/22,PROXY,no-resolve
+IP-CIDR,91.108.8.0/22,PROXY,no-resolve
+IP-CIDR,91.108.12.0/22,PROXY,no-resolve
+IP-CIDR,91.108.16.0/22,PROXY,no-resolve
+IP-CIDR,91.108.20.0/22,PROXY,no-resolve
+IP-CIDR,91.108.56.0/22,PROXY,no-resolve
+IP-CIDR,91.105.192.0/23,PROXY,no-resolve
+IP-CIDR,149.154.160.0/20,PROXY,no-resolve
+IP-CIDR,185.76.151.0/24,PROXY,no-resolve
+IP-CIDR,95.161.64.0/20,PROXY,no-resolve
 
-DOMAIN-SUFFIX,habr.com,AUTO
-DOMAIN-SUFFIX,apkmirror.com,AUTO
+DOMAIN-SUFFIX,habr.com,PROXY
+DOMAIN-SUFFIX,apkmirror.com,PROXY
 
 # AI
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/OpenAI/OpenAI.list,AI
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Claude/Claude.list,AI
-DOMAIN-SUFFIX,claude.com,AI
-DOMAIN-SUFFIX,claudeusercontent.com,AI
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Gemini/Gemini.list,AI
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Copilot/Copilot.list,AI
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/OpenAI/OpenAI.list,PROXY
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Claude/Claude.list,PROXY
+DOMAIN-SUFFIX,claude.com,PROXY
+DOMAIN-SUFFIX,claudeusercontent.com,PROXY
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Gemini/Gemini.list,PROXY
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Copilot/Copilot.list,PROXY
 
 # geosite:youtube / github / telegram
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/YouTube/YouTube.list,AUTO
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/GitHub/GitHub.list,AUTO
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Telegram/Telegram.list,AUTO
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/YouTube/YouTube.list,PROXY
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/GitHub/GitHub.list,PROXY
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Telegram/Telegram.list,PROXY
 
 # ============================================================
 # BLOCK через AdGuard: домен, на который AdGuard ответил 0.0.0.0 → REJECT.
@@ -137,7 +131,7 @@ IP-CIDR,169.254.0.0/16,DIRECT,no-resolve
 GEOIP,RU,DIRECT
 
 # ============================================================
-FINAL,AUTO
+FINAL,PROXY
 
 [Host]
 # Bootstrap: имя DoH-сервера не резолвится через него самого
