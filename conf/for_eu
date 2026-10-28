@@ -1,51 +1,154 @@
-# Shadowrocket: 2026-10-28 00:53:43
 [General]
-dns-server = https://dns.y8s33fl.space/dns-query,https://8.8.8.8/dns-query
+dns-server = https://dns.y8s33fl.space/dns-query
 ipv6 = false
+fallback-dns-server = 9.9.9.9, system, 1.1.1.1, https://8.8.8.8/dns-query
+private-ip-answer = true
+udp-policy-not-supported-behaviour = REJECT
+use-local-host-item-for-proxy = false
+udp-relay = true
+# QUIC режется только для трафика в прокси (браузеры/YouTube уходят на TCP); DIRECT сохраняет HTTP/3
+block-quic = all-proxy
+update-url = https://raw.githubusercontent.com/kaka0-0/shadowrocket-configuration-file/refs/heads/main/conf/for_eu
 
 [Rule]
-# 1. block: category-ads (+ win-spy — точного аналога нет, опущено)
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Advertising/Advertising.list,REJECT
+# === Local Network / LAN ===
+DOMAIN-SUFFIX,ip6-localhost,DIRECT
+DOMAIN-SUFFIX,ip6-loopback,DIRECT
+DOMAIN-SUFFIX,lan,DIRECT
+DOMAIN-SUFFIX,local,DIRECT
+DOMAIN-SUFFIX,localhost,DIRECT
+IP-CIDR,0.0.0.0/8,DIRECT,no-resolve
+IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
+IP-CIDR,100.64.0.0/10,DIRECT,no-resolve
+IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
+IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
+IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
+IP-CIDR,224.0.0.0/4,DIRECT,no-resolve
+IP-CIDR6,::1/128,DIRECT,no-resolve
+IP-CIDR6,FC00::/7,DIRECT,no-resolve
+IP-CIDR6,FE80::/10,DIRECT,no-resolve
 
-# 2. PROXY-исключения (ДО блока RU-direct, иначе уйдёт в DIRECT по GEOIP)
-DOMAIN-SUFFIX,habr.com,PROXY
-DOMAIN-SUFFIX,apkmirror.com,PROXY
+# === Ручные домены — ВСЕГДА DIRECT ===
+DOMAIN-SUFFIX,netcraze.pro,DIRECT
+DOMAIN-SUFFIX,y8s33fl.space,DIRECT
+DOMAIN-SUFFIX,lampa.mx,DIRECT
+DOMAIN-SUFFIX,duckdns.org,DIRECT
+IP-CIDR,5.35.114.178/32,DIRECT,no-resolve
 
-# 3. direct: IP-leak чекеры (geosite:category-ip-geo-detect)
+# geosite:category-ru + whitelist
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Yandex/Yandex.list,DIRECT
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/VK/VK.list,DIRECT
+DOMAIN-SUFFIX,mycdn.me,DIRECT
+DOMAIN-SUFFIX,ru,DIRECT
+DOMAIN-SUFFIX,su,DIRECT
+DOMAIN-SUFFIX,xn--p1ai,DIRECT
+
+# === Router Management Domains ===
+DOMAIN,instant.arubanetworks.com,DIRECT
+DOMAIN,setmeup.arubanetworks.com,DIRECT
+DOMAIN,router.asus.com,DIRECT
+DOMAIN,www.asusrouter.com,DIRECT
+DOMAIN-SUFFIX,hiwifi.com,DIRECT
+DOMAIN-SUFFIX,leike.cc,DIRECT
+DOMAIN-SUFFIX,miwifi.com,DIRECT
+DOMAIN-SUFFIX,my.router,DIRECT
+DOMAIN-SUFFIX,peiluyou.com,DIRECT
+DOMAIN-SUFFIX,phicomm.me,DIRECT
+DOMAIN-SUFFIX,router.ctc,DIRECT
+DOMAIN-SUFFIX,routerlogin.com,DIRECT
+DOMAIN-SUFFIX,tendawifi.com,DIRECT
+DOMAIN-SUFFIX,zte.home,DIRECT
+DOMAIN-SUFFIX,tplogin.cn,DIRECT
+DOMAIN-SUFFIX,wifi.cmcc,DIRECT
+
+# === Zoom — всегда DIRECT ===
+DOMAIN-SUFFIX,zoom.us,DIRECT
+DOMAIN-SUFFIX,zoom.com,DIRECT
+DOMAIN-SUFFIX,zoomcloud.com,DIRECT
+DOMAIN-SUFFIX,zoomstatic.com,DIRECT
+DOMAIN-SUFFIX,zmassets.com,DIRECT
+DOMAIN-SUFFIX,zoomgov.com,DIRECT
+
+# IP-geo чекеры (geosite:category-ip-geo-detect)
 DOMAIN-SUFFIX,ifconfig.me,DIRECT
 DOMAIN,checkip.amazonaws.com,DIRECT
 DOMAIN-SUFFIX,ip-api.com,DIRECT
 DOMAIN-SUFFIX,ipinfo.io,DIRECT
 DOMAIN-SUFFIX,ipify.org,DIRECT
 
-# 4. direct: крупные сервисы (эквиваленты geosite)
+# Telegram: официальные подсети (core.telegram.org/resources/cidr.txt)
+IP-CIDR,91.108.4.0/22,PROXY,no-resolve
+IP-CIDR,91.108.8.0/22,PROXY,no-resolve
+IP-CIDR,91.108.12.0/22,PROXY,no-resolve
+IP-CIDR,91.108.16.0/22,PROXY,no-resolve
+IP-CIDR,91.108.20.0/22,PROXY,no-resolve
+IP-CIDR,91.108.56.0/22,PROXY,no-resolve
+IP-CIDR,91.105.192.0/23,PROXY,no-resolve
+IP-CIDR,149.154.160.0/20,PROXY,no-resolve
+IP-CIDR,185.76.151.0/24,PROXY,no-resolve
+IP-CIDR,95.161.64.0/20,PROXY,no-resolve
+
+# geosite:steam
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Steam/Steam.list,DIRECT
+
+# geosite:epicgames
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Epic/Epic.list,DIRECT
+
+# geosite:riot (нет готового RULE-SET — ручные домены)
+DOMAIN-SUFFIX,riotgames.com,DIRECT
+DOMAIN-SUFFIX,riotstatic.com,DIRECT
+DOMAIN-SUFFIX,leagueoflegends.com,DIRECT
+DOMAIN-SUFFIX,valorant.com,DIRECT
+DOMAIN-SUFFIX,playvalorant.com,DIRECT
+DOMAIN-SUFFIX,pvp.net,DIRECT
+
+# Origin / EA
+DOMAIN-SUFFIX,origin.com,DIRECT
+DOMAIN-SUFFIX,ea.com,DIRECT
+
+# Escape from Tarkov
+DOMAIN-SUFFIX,escapefromtarkov.com,DIRECT
+DOMAIN-SUFFIX,battlestate.com,DIRECT
+
+# PlayStation
+DOMAIN-SUFFIX,playstation.com,DIRECT
+DOMAIN-SUFFIX,playstation.net,DIRECT
+DOMAIN-SUFFIX,psn.com,DIRECT
+DOMAIN-SUFFIX,sonyentertainmentnetwork.com,DIRECT
+
+# geosite:twitch (JSON: DirectSites; twitch-ads как отдельный PROXY — нет .list)
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Twitch/Twitch.list,DIRECT
+
+# AI (до Microsoft DIRECT: иначе Copilot/Bing уходят напрямую)
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/OpenAI/OpenAI.list,PROXY
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Claude/Claude.list,PROXY
+DOMAIN-SUFFIX,claude.com,PROXY
+DOMAIN-SUFFIX,claudeusercontent.com,PROXY
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Gemini/Gemini.list,PROXY
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Copilot/Copilot.list,PROXY
+
+# geosite:youtube / github / telegram
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/YouTube/YouTube.list,PROXY
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/GitHub/GitHub.list,PROXY
+RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Telegram/Telegram.list,PROXY
+
+# geosite:apple / microsoft
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Apple/Apple.list,DIRECT
 RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Microsoft/Microsoft.list,DIRECT
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Steam/Steam.list,DIRECT
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/GooglePlay/GooglePlay.list,DIRECT
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Xiaomi/Xiaomi.list,DIRECT
-RULE-SET,https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Huawei/Huawei.list,DIRECT
 
-# 5. direct: RU-домены (geosite:yandex / vk)
-DOMAIN-SUFFIX,yandex.ru,DIRECT
-DOMAIN-SUFFIX,yandex.net,DIRECT
-DOMAIN-SUFFIX,yandex.com,DIRECT
-DOMAIN-SUFFIX,ya.ru,DIRECT
-DOMAIN-SUFFIX,vk.com,DIRECT
-DOMAIN-SUFFIX,vk.ru,DIRECT
-DOMAIN-SUFFIX,vk-cdn.net,DIRECT
-DOMAIN-SUFFIX,userapi.com,DIRECT
-DOMAIN-SUFFIX,mycdn.me,DIRECT
-DOMAIN-SUFFIX,mail.ru,DIRECT
+# Блок AdGuard для трафика в FINAL: домен резолвится (нужно для GEOIP),
+# AdGuard (null_ip) ответил 0.0.0.0 → REJECT. Без no-resolve — иначе не сработает.
+IP-CIDR,0.0.0.0/32,REJECT
 
-# 6. direct: private (geosite:private + geoip:private) — ПЕРЕД GEOIP, без лукапа
-IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
-IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
-IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
-IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
-
-# 7. direct: всё российское по IP (заменяет geosite:category-ru)
+# Всё российское по IP
 GEOIP,RU,DIRECT
 
-# 8. дефолт = PROXY (первый outbound в Xray)
+# Дефолт
 FINAL,PROXY
+
+[Host]
+# Bootstrap DoH: имя DNS-сервера не резолвится через него самого
+dns.y8s33fl.space = 5.35.114.178
+# ФНС — статический DNS (при недоступности ЛК проверить актуальность IP)
+lkfl2.nalog.ru = 213.24.64.175
+lknpd.nalog.ru = 213.24.64.181
