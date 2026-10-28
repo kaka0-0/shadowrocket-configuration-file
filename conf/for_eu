@@ -1,6 +1,6 @@
 # Shadowrocket: 2026-10-28 00:53:43
 [General]
-dns-server = https://1.1.1.1/dns-query,https://8.8.8.8/dns-query
+dns-server = https://dns.y8s33fl.space/dns-query,https://8.8.8.8/dns-query
 ipv6 = false
 
 [Rule]
