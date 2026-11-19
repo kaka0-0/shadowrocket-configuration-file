@@ -31,7 +31,6 @@ IP-CIDR6,FE80::/10,DIRECT,no-resolve
 
 # === Собственные зарубежные VPS — через PROXY (прямой канал RU→EU душится) ===
 DOMAIN,sw.y8s33fl.space,PROXY
-DOMAIN,nlwo.y8s33fl.space,PROXY
 
 # === Ручные домены — ВСЕГДА DIRECT ===
 DOMAIN-SUFFIX,netcraze.pro,DIRECT
